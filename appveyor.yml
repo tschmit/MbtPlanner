@@ -1,0 +1,7 @@
+install:
+  - yarn update
+	
+test_script:
+  - yarn test
+	
+build: off
