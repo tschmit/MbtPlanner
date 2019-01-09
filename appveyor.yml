@@ -1,5 +1,5 @@
 install:
-  - yarn update	
+  - yarn install	
 test_script:
   - yarn test
 build: off
