@@ -27,3 +27,4 @@ One can specify:
 - days off, globally or locally. For example this could be used for holidays.
 
 [Samples](http://planner.madbuildertools.com)
+[Documentation](http://planner.madbuildertools.com/docs/)
