@@ -1,5 +1,7 @@
 # MbtPlanner
 
+[![Build Status](https://travis-ci.org/tschmit/MbtPlanner.svg?branch=master)](https://travis-ci.org/tschmit/MbtPlanner)
+
 A module to plan and display a corresponding schedule from a list of tasks each of one having:
 
 - mandatorily:
