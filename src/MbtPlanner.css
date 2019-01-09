@@ -1,0 +1,84 @@
+﻿.MbtPlanner table {
+    table-layout: fixed;
+}
+
+/*.MbtPlanner thead tr:nth-child(2) td {
+    padding: 0px;
+}*/
+
+.MbtPlanner th {
+    white-space: nowrap;
+    border: 1px solid black;
+    text-align: center;
+    overflow-x: hidden;
+}
+
+.MbtPlanner .Tasks {
+    width: 20%;
+}
+
+.MbtPlanner .Tasks table {
+    width: 100%;
+}
+
+.MbtPlanner .Tasks td:last-child {
+    text-align: center;
+}
+
+.MbtPlanner .Tasks td:nth-child(2) {
+    text-align: right;
+}
+
+.MbtPlanner .Tasks td {
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}
+
+.MbtPlanner .Planning {
+    width: 80%;
+    overflow-x: auto;
+}
+
+.MbtPlanner .Planning td {
+    text-align: center;
+}
+
+.MbtPlanner .Planning td:empty:after {
+    content: "\a0";
+}
+
+.MbtPlanner .Closed {
+    background-color: yellow;
+}
+
+.MbtPlanner .Worked {
+    background-color: Highlight;
+}
+
+.MbtPlanner .OutOfWork {
+    background-color: yellowgreen;
+}
+
+.MbtPlanner .DueDate {
+    background-color: red;
+}
+
+.MbtPlanner .DueDateOO {
+    background-image: linear-gradient(red, yellowgreen);
+}
+
+.MbtPlanner .AfterDueDate {
+    background-image: linear-gradient(red, Highlight);
+}
+
+.MbtPlanner .ActionB {
+    cursor: pointer;
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+.MbtPlanner .PBar {
+    background-color: green;
+    overflow-x: visible;
+}

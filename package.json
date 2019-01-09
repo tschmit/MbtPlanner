@@ -1,0 +1,48 @@
+{
+	"name": "mbt-planner",
+	"keywords": [
+		"planning",
+		"browser",
+		"javascript",
+		"plan",
+		"task",
+		"schedule",
+		"html"
+	],
+	"version": "1.0.0",
+	"license": "MIT",
+	"homepage": "http://planner.madbuildertools.com",
+	"author": "thierry schmit <thierry.schmit@gmail.com>",
+	"dependencies": {
+		"jquery": "^3.3.1"
+	},
+	"devDependencies": {
+		"@babel/cli": "^7.2.3",
+		"@babel/core": "^7.2.2",
+		"babel-preset-minify": "^0.5.0",
+		"jest": "^23.6.0",
+		"jsdoc": "^3.5.5",
+		"jsdoc-to-markdown": "^4.0.1",
+		"jsdom": "^13.1.0",
+		"minami": "^1.2.3"
+	},
+	"repository": {
+		"url": "https://github.com/tschmit/MbtPlanner",
+		"type": "git"
+	},
+	"files": [
+		"dist/",
+		"readme.md"
+	],
+	"scripts": {
+		"bjs": "node build.js",
+		"bb": "babel src/MbtPlanner.js --out-file dist/MbtPlanner.min.js --source-maps",
+		"test": "jest",
+		"doc": "jsdoc --configure jsdoc.conf.json src/MbtPlanner.js"
+	},
+	"babel": {
+		"presets": [
+			"minify"
+		]
+	}
+}

@@ -1,0 +1,9 @@
+{ 
+  "plugins": [ 
+    "plugins/remove-iife.js", 
+	"plugins/markdown.js" ],
+  "opts" : {
+    "destination": "./docs/",
+	"template": "./node_modules/minami"
+  }
+}
