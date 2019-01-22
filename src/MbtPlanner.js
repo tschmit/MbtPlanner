@@ -5,7 +5,7 @@
  * @copyright Cabinet Camus Lebkiri (2019)
  * @license MIT
  * 
- * @overview dependecies:
+ * @overview dependencies:
  *    - required
  *        - jquery
  *    - optional

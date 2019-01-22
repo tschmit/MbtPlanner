@@ -1,6 +1,6 @@
 { 
   "plugins": [ 
-    "plugins/remove-iife.js", 
+    "../../src/remove-iife.js", 
 	"plugins/markdown.js" ],
   "opts" : {
     "destination": "./docs/",
