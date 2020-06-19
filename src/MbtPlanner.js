@@ -520,6 +520,7 @@
 	 *
 	 *     {
 	 *       Id:         not null, unique identifier of the task. task silently ignored if not set
+     *                   if two tasks has the same id they will be considered as one.
 	 *       Code:       not null, task type identifier. task silently ignored if not set
 	 *
 	 *       ResourceId: can be null, unique identifier of a resource
@@ -553,6 +554,11 @@
             if (tasks[i].Id === undefined || tasks[i].Id === null) {
                 continue;
             }
+            let dupIndex = this.Tasks.findIndex((o) => {
+                return o.Id === tasks[i].Id; 
+            });
+            if (dupIndex !== -1)
+                continue;
             if (tasks[i].Code === undefined || tasks[i].Code === null) {
                 continue;
             } 

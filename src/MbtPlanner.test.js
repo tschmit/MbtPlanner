@@ -8,40 +8,39 @@ global.$ = global.jQuery = require("jquery");
 var Planner = require('./MbtPlanner');
 
 test('creating empty planner: count', () => {
-    let p = new Planner.MbtPlanner("abc"); 
+    let p = new Planner.MbtPlanner("abc");
     expect(p.Tasks.length).toBe(0);
 });
 
-test('creating 1 ano task planner: count task', () => {
-    let p = new Planner.MbtPlanner("abc"); 
-	p.AppendTasks([{
-		Id: 1, Code: "tcode"
-	}]);
-    expect(p.Tasks.length).toBe(1);
-});
-
-test('creating 1 ano task planner: count resource', () => {
-    let p = new Planner.MbtPlanner("abc"); 
-	p.AppendTasks([{
-		Id: 1, Code: "tcode"
-	}]);
-    expect(p.Resources.length).toBe(1);
-});
-
-test('creating 1 ano task planner: resource id is null', () => {
-    let p = new Planner.MbtPlanner("abc"); 
-	p.AppendTasks([{
-		Id: 1, Code: "tcode"
-	}]);
-    expect(p.Resources[0].Id).toBe(null);
-});
-
-test('creating 1 ano task planner: DueDate is EOW', () => {
-    let p = new Planner.MbtPlanner("abc");
-    p.AppendTasks([{
-        Id: 1, Code: "tcode"
-    }]);
-    expect(p.Tasks[0].DueDate).toBe(p.GetEOW());
+describe("ano task", function () {
+    test('creating 1: count task', () => {
+        let p = new Planner.MbtPlanner("abc");
+        p.AppendTasks([{
+            Id: 1, Code: "tcode"
+        }]);
+        expect(p.Tasks.length).toBe(1);
+    });
+    test('creating 1: count resource', () => {
+        let p = new Planner.MbtPlanner("abc");
+        p.AppendTasks([{
+            Id: 1, Code: "tcode"
+        }]);
+        expect(p.Resources.length).toBe(1);
+    });
+    test('creating 1: resource id is null', () => {
+        let p = new Planner.MbtPlanner("abc");
+        p.AppendTasks([{
+            Id: 1, Code: "tcode"
+        }]);
+        expect(p.Resources[0].Id).toBe(null);
+    });
+    test('creating 1: DueDate is EOW', () => {
+        let p = new Planner.MbtPlanner("abc");
+        p.AppendTasks([{
+            Id: 1, Code: "tcode"
+        }]);
+        expect(p.Tasks[0].DueDate).toBe(p.GetEOW());
+    });
 });
 
 describe("delta", function() {
@@ -187,6 +186,21 @@ describe("completion", function () {
 
 });
 
+describe("hnadling dup id", function () {
+    test("2 tasks with same id results to 1", function () {
+        let p = new Planner.MbtPlanner("abc");
+        let t = [{ Id: 0, Code: "abc" }, { Id: 0, Code: "def" }];
+        p.AppendTasks(t);
+        expect(p.Tasks.length).toBe(1);
+    });
+    test("2 tasks with != id results to 2", function () {
+        let p = new Planner.MbtPlanner("abc");
+        let t = [{ Id: 0, Code: "abc" }, { Id: 1, Code: "def" }];
+        p.AppendTasks(t);
+        expect(p.Tasks.length).toBe(2);
+    });
+});
+
 describe("handling null id", () => {
 
     var cases = [
@@ -295,7 +309,7 @@ describe("planning", () => {
                 Code: "tcode",
                 Load: 1
                 }, {
-                    Id: 0,
+                    Id: 1,
                     Code: "tcode",
                     Load: 1
                 }],
@@ -325,7 +339,7 @@ describe("planning", () => {
                 Code: "tcode",
                 Load: 0.4
             }, {
-                Id: 1,
+                Id: 2,
                 Code: "tcode",
                 Load: 0.8
             }],
@@ -398,7 +412,6 @@ describe("planning", () => {
         })
     });    
 });
-
 
 describe("IsOutOfWorkDay", () => {
     test("true from specific OOW", () => {
