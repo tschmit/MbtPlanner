@@ -14,7 +14,7 @@
 	"homepage": "http://planner.madbuildertools.com",
 	"author": "thierry schmit <thierry.schmit@gmail.com>",
 	"dependencies": {
-		"jquery": "^3.3.1"
+		"jquery": "^3.5.0"
 	},
 	"devDependencies": {
 		"@babel/cli": "^7.2.3",
