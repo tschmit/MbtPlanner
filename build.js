@@ -6,7 +6,7 @@
 	gconf = JSON.parse(fs.readFileSync('package.json', 'utf8'))
 	
 	var options = {
-		//sourceMaps: true,
+		sourceMaps: false,
 		presets: ["minify"]
 	};
 

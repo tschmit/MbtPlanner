@@ -19,6 +19,61 @@
 
     var _endOfTheWorld = new Date("2500-01-01");
 
+    function isPromise(p) {
+        return !!p && typeof p.then === 'function'
+    }
+
+    function ContextMenu(contId, menu, openCallback) {
+        if (contId.startsWith("#"))
+            contId = contId.substring(1);
+
+        let cont = document.getElementById(contId);
+        if (cont === null) {
+            let body = document.getElementsByTagName("body")[0];
+            cont = document.createElement("div");
+            cont.id = contId
+            body.appendChild(cont);
+        }
+
+        if (!$(cont).hasClass("contextMenu")) {
+            $(cont).addClass("contextMenu")
+        }
+
+        $("body").on("click", function () {
+            $(cont).css('display', 'none');
+        });
+
+
+
+        return function (evt) {
+            var ul = $("<ul>");
+            $(cont).html('');
+            menu.forEach((m) => {
+                if (m.visible) {
+                    var li = $("<li>" + m["title"] + "</li>");
+                    li.on("click", async function (evt) {                        
+                        let r = m["action"](m, evt);
+                        if (isPromise(r))
+                            await r;
+                        $(contId).css('display', 'none');
+                    });
+                    ul.append(li);
+                }
+            });
+            $(cont).append(ul);
+                        
+            //if (openCallback) openCallback(data || evt, index);
+
+            $(cont)
+                .css('left', (evt.pageX - 2) + 'px')
+                .css('top', (evt.pageY - 2) + 'px')
+                .css('display', 'block');
+
+            evt.preventDefault();
+            evt.stopPropagation();
+        };
+    }
+
     /**
      * @constructor
      * @param {any} id Unique identifier of a DOM element that will be used as placeholder for the planner
@@ -32,6 +87,17 @@
             id = "#" + id;
         this.Id = id;
         this.ResetPlanner();
+        /** 
+         *  @property {array} Resources an array of 
+         *  
+         *  {
+         *      Id: id,
+         *      OutOfWorkDays: [], string XXXX-MM-DD
+         *      ClosedIsoDays: [], int between 0 and 6. 7 is equivalent to 0 (sunday)
+         *  }
+         *  
+         */
+        this.Resources = [];
         this.ClosedIsoDays = [6, 7];
         this.OutOfWorkDays = [];
         this.ProgressStep = 25;
@@ -61,16 +127,50 @@
         //for the svg experimental version
         this.dayWGutter = 2;
         this.dayHGutter = 2;
+
+        /**
+         * @property {function} Save function that saves modified task completions. Default:
+         * 
+         *     null
+         * */
+        this.Save = null;
     };
+
+    /**
+     * 
+     * @param {function} save a function taking the result of this.GetDeltas() as parameter. Awaited id save is async.
+     * @see {@link GetDeltas}
+     */
+    MbtPlanner.prototype.SetSave = function (save) {
+        if (this.Save == null && save != null) {
+            $(this.Id).on("contextmenu", ContextMenu(this.Id + "m", [
+                {
+                    visible: true,
+                    title: "Save",
+                    action: async function () {
+                        let r = this.Save(this.GetDeltas());
+                        if (isPromise(r)) {
+                            await r;
+                        }
+                    }.bind(this)
+                }
+            ], null))
+        }
+        this.Save = save;
+        if (this.Save === null) {
+            $(this.Id).off("contextmenu");
+        }
+    }
 
     MbtPlanner.prototype.GetEOW = () => _endOfTheWorld;
 
     /**
      * Reset the planner, that is set Tasks and Resources to empty arrays.*/
-    MbtPlanner.prototype.ResetPlanner = function () {
+    MbtPlanner.prototype.ResetPlanner = function (keepResources = false) {
         $(this.Id).html("");
         this.Tasks = [];
-        this.Resources = [];
+        if (!keepResources)
+            this.Resources = [];
         this.MinDueDate = _endOfTheWorld;
         this.MaxDueDate = null;
         this.MaxDate = null;
@@ -120,7 +220,7 @@
     MbtPlanner.prototype.FormatResourceFooter = function (r, load) {
         try {
             if (this.CustomResourceFooter !== null) {
-                return this.CustomResourceFooter(r);
+                return this.CustomResourceFooter(r, load);
             }
             return r.Id.toString() + ": " + load.toFixed(2);
         } catch (err) {
@@ -151,9 +251,9 @@
      * @async
      * @see {@link ResetPlanner}
      */
-    MbtPlanner.prototype.ResetPlannerAsync = function () {
+    MbtPlanner.prototype.ResetPlannerAsync = function (keepResources = false) {
         return new Promise(function (resolve, reject) {
-            this.ResetPlanner();
+            this.ResetPlanner(keepResources);
             resolve(true);
         }.bind(this));
     };   
@@ -186,22 +286,26 @@
      * @param {function} businessSuccessEval a function to evaluate if the call was successfull from the server point of view. Param is the return of the ajax call.
      * @param {function} businessError a function to handle the business error. Param is the return of the ajax call.
      * @param {function} error a function to handle the not recoverble errors. No Param.
-     * @param {function} beforePlan. A function to setup the planner before the call to Plan, but after the call to AppendTasks. Param: the planner.
+     * @param {function} beforePlan. A function to setup the planner before the call to Plan, but after the call to AppendTasks. Param: the planner, the return of the ajax call.
+     * @param {function} dataGetter. How to get the tasks from the response. Param: the return of the ajax call.
+     * @param keepResources. If true, does not clear Resources during planner reset. Default = false
      */
     MbtPlanner.prototype.QueryPlanAndDrawAsync = function (
         queryObject, successEval, businessSuccessEval,
-        businessError, error, beforePlan
+        businessError, error, beforePlan, dataGetter = null, keepResources = false
     ) {
         return Promise.all([
-            this.ResetPlannerAsync(),
+            this.ResetPlannerAsync(keepResources),
             $.ajax(queryObject)
         ]).then(function (values) {
             var dl = values[1];
             if (successEval(dl)) {
                 if (businessSuccessEval(dl)) {
-                    this.AppendTasks(dl.Data, this.DefaultLoads);
+                    if (dataGetter === null)
+                        dataGetter = (dl) => dl.Data
+                    this.AppendTasks(dataGetter(dl), this.DefaultLoads);
                     if (beforePlan !== undefined) {
-                        beforePlan(this);
+                        beforePlan(this, dl);
                     }
                     this.Plan("forward");
                     this.Draw(Date.now());
@@ -220,6 +324,10 @@
      * @param {string} mode "html" or "html". Default: "html".
      */
     MbtPlanner.prototype.Draw = function (drawMinDate, mode) {
+        if (!$(this.Id).hasClass("MbtPlanner"))
+            $(this.Id).addClass("MbtPlanner");
+        $(this.Id).html("<div style='font-size:" + this.fontSize.toString() + "px;line-height:" + this.dayHeight.toString() + "px'><div style='display: flex;'><div class='Tasks'></div><div class='Planning'></div></div><div class='Messages'></div></div>");
+
         var perf_startDrawing = Date.now();
         if (this.MaxDate === null) {
             $(this.Id + " .Planning").html("<p>Nothing to display</p>");
@@ -229,11 +337,7 @@
         if (mode === undefined || mode === null) {
             mode = "html;"
         }
-
-        if (!$(this.Id).hasClass("MbtPlanner"))
-            $(this.Id).addClass("MbtPlanner");
-        $(this.Id).html("<div style='font-size:" + this.fontSize.toString() + "px;line-height:" + this.dayHeight.toString() + "px'><div style='display: flex;'><div class='Tasks'></div><div class='Planning'></div></div><div class='Messages'></div></div>");
-
+        
         if (drawMinDate === undefined || drawMinDate === null) {
             drawMinDate = this.LastDrawMinDate;
         } else {
@@ -249,13 +353,15 @@
             startDate = new Date(startDate.valueOf() - 864E5)
         }
         var drawMaxDate = this.MaxDate;
-        var weekCount = Math.ceil((this.MaxDate.valueOf() - startDate.valueOf()) / (7 * 864E5));
+        
         this.Resources.forEach(function (r) {
             r.OutOfWorkDays.forEach(function (d) {
                 if (d > drawMaxDate)
                     drawMaxDate = d;
             });
         });
+        //var weekCount = Math.ceil((this.MaxDate.valueOf() - startDate.valueOf()) / (7 * 864E5));
+        var weekCount = Math.ceil((drawMaxDate.valueOf() - startDate.valueOf()) / (7 * 864E5));
         while (getIsoDay(drawMaxDate) !== this.LastIsoDayOfWeek()) {
             drawMaxDate = new Date(drawMaxDate.valueOf() + 864E5);
         }
@@ -344,6 +450,15 @@
                     }
                 }
                 $(this.Id + " .Tasks").html(t);
+                b.on("click", "td:first-child", (e) => {
+                    e = e || window.event;
+                    var p = $(e.target || e.srcElement).closest("tr");
+                    var i = Array.prototype.indexOf.call(p[0].parentElement.children, p[0]);
+                    //alert(i);
+                    p.toggleClass("SelectedRow");
+                    $(this.Id + " .Planning tbody").children().eq(i).toggleClass("SelectedRow");
+
+                });
 
                 var perf_DrawingTasksDuration = Date.now() - perf_startDrawing;                
 
